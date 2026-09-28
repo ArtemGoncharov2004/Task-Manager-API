@@ -1,6 +1,10 @@
-def main():
-    print("Python project started!")
+from fastapi import FastAPI
+from app.api.tasks import router as tasks_router
+
+app = FastAPI(title="Task Manager API")
+app.include_router(tasks_router)
 
 
-if __name__ == "__main__":
-    main()
+@app.get("/health")
+def health():
+    return {"status": "ok"}
