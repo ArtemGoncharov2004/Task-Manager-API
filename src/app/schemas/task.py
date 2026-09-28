@@ -12,7 +12,7 @@ class TaskStatus(str, Enum):
 class TaskCreate(BaseModel):
     title: str = Field(min_leng=1, max_length=50)
     description: str | None = None
-    status: TaskStatus = TaskStatus.todo
+    status: TaskStatus = TaskStatus.TODO
     priority: int = Field(default=3, ge=1, le=5)
 
 
