@@ -6,3 +6,13 @@ class NotFoundError(Exception):
 class ConflictError(Exception):
     def __init__(self, detail: str = "Resource conflict"):
         self.detail = detail
+
+
+class UnauthorizedError(Exception):
+    def __init__(self, detail: str = "Not authenticated"):
+        self.detail = detail
+
+
+class ForbiddenError(Exception):
+    def __init__(self, detail: str = "Not enough permissions"):
+        self.detail = detail
