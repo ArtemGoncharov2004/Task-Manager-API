@@ -1,26 +1,30 @@
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.core.exceptions import NotFoundError
+from app.core.exceptions import ForbiddenError, NotFoundError
+from app.models.project import Project
 from app.models.task import Task, TaskStatus
 from app.schemas.task import TaskCreate, TaskUpdate
 
 
-def get_task(db: Session, task_id: int) -> Task:
+def get_task(db: Session, task_id: int, owner_id: int) -> Task:
     task = db.get(Task, task_id)
     if task is None:
         raise NotFoundError(f"Task {task_id} not found")
+    if task.project.owner_id != owner_id:
+        raise ForbiddenError("You don't have access to this task")
     return task
 
 
 def list_tasks(
     db: Session,
+    owner_id: int,
     skip: int = 0,
     limit: int = 20,
     status: TaskStatus | None = None,
     project_id: int | None = None,
-) -> tuple[list[Task], int]:
-    query = select(Task)
+):
+    query = select(Task).join(Project).where(Project.owner_id == owner_id)
     if status is not None:
         query = query.where(Task.status == status)
     if project_id is not None:
@@ -31,7 +35,13 @@ def list_tasks(
     return list(tasks), total
 
 
-def create_task(db: Session, data: TaskCreate) -> Task:
+def create_task(db: Session, data: TaskCreate, owner_id: int) -> Task:
+    project = db.get(Project, data.project_id)
+    if project is None:
+        raise NotFoundError(f"Project {data.project_id} not found")
+    if project.owner_id != owner_id:
+        raise ForbiddenError("You don't own this project")
+
     task = Task(**data.model_dump())
     db.add(task)
     db.commit()
@@ -39,8 +49,8 @@ def create_task(db: Session, data: TaskCreate) -> Task:
     return task
 
 
-def update_task(db: Session, task_id: int, data: TaskUpdate) -> Task:
-    task = get_task(db, task_id)
+def update_task(db: Session, task_id: int, data: TaskUpdate, owner_id: int) -> Task:
+    task = get_task(db, task_id, owner_id)
     for field, value in data.model_dump(exclude_unset=True).items():
         setattr(task, field, value)
     db.commit()
@@ -48,7 +58,7 @@ def update_task(db: Session, task_id: int, data: TaskUpdate) -> Task:
     return task
 
 
-def delete_task(db: Session, task_id: int) -> None:
-    task = get_task(db, task_id)
+def delete_task(db: Session, task_id: int, owner_id: int) -> None:
+    task = get_task(db, task_id, owner_id)
     db.delete(task)
     db.commit()

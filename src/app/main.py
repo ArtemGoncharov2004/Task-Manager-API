@@ -4,7 +4,13 @@ from fastapi.responses import JSONResponse
 from app.api.projects import router as projects_router
 from app.api.tags import router as tags_router
 from app.api.tasks import router as tasks_router
-from app.core.exceptions import ConflictError, NotFoundError
+from app.core.exceptions import (
+    ConflictError,
+    ForbiddenError,
+    NotFoundError,
+    UnauthorizedError,
+)
+from app.api.auth import router as auth_router
 
 app = FastAPI(title="Task Manager API")
 
@@ -19,6 +25,17 @@ def conflict_handler(request: Request, exc: ConflictError):
     return JSONResponse(status_code=409, content={"detail": exc.detail})
 
 
+@app.exception_handler(UnauthorizedError)
+def unauthorized_handler(request: Request, exc: UnauthorizedError):
+    return JSONResponse(status_code=401, content={"detail": exc.detail})
+
+
+@app.exception_handler(ForbiddenError)
+def forbidden_handler(request: Request, exc: ForbiddenError):
+    return JSONResponse(status_code=403, content={"detail": exc.detail})
+
+
+app.include_router(auth_router)
 app.include_router(tasks_router)
 app.include_router(projects_router)
 app.include_router(tags_router)
