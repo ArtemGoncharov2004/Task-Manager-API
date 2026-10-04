@@ -1,35 +1,37 @@
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import ConflictError, NotFoundError
 from app.models.tag import Tag
 from app.schemas.tag import TagCreate
 
 
-def list_tags(db: Session) -> list[Tag]:
-    return db.query(Tag).all()
+async def list_tags(db: AsyncSession) -> list[Tag]:
+    result = await db.execute(select(Tag))
+    return list(result.scalars().all())
 
 
-def create_tag(db: Session, data: TagCreate) -> Tag:
+async def create_tag(db: AsyncSession, data: TagCreate) -> Tag:
     tag = Tag(**data.model_dump())
     db.add(tag)
     try:
-        db.commit()
+        await db.commit()
     except IntegrityError:
-        db.rollback()
+        await db.rollback()
         raise ConflictError(f"Tag '{data.name}' already exists")
-    db.refresh(tag)
+    await db.refresh(tag)
     return tag
 
 
-def get_tag(db: Session, tag_id: int) -> Tag:
-    tag = db.get(Tag, tag_id)
+async def get_tag(db: AsyncSession, tag_id: int) -> Tag:
+    tag = await db.get(Tag, tag_id)
     if tag is None:
         raise NotFoundError(f"Tag {tag_id} not found")
     return tag
 
 
-def delete_tag(db: Session, tag_id: int) -> None:
-    tag = get_tag(db, tag_id)
-    db.delete(tag)
-    db.commit()
+async def delete_tag(db: AsyncSession, tag_id: int) -> None:
+    tag = await get_tag(db, tag_id)
+    await db.delete(tag)
+    await db.commit()

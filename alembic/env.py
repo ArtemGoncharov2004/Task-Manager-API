@@ -14,6 +14,8 @@ from app.core.config import settings
 from app.db.base import Base
 from app.models import *
 
+from app.core.config import settings
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
@@ -25,6 +27,8 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 config.set_main_option("sqlalchemy.url", settings.database_url)
+sync_url = settings.database_url.replace("+asyncpg", "+psycopg")
+config.set_main_option("sqlalchemy.url", sync_url)
 target_metadata = Base.metadata
 # add your model's MetaData object here
 # for 'autogenerate' support
