@@ -16,5 +16,26 @@ services:
       timeout: 5s
       retries: 5
 
+  app:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+    container_name: task-manager-app
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://task_user:change_me_locally@db:5432/task_manager
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
 volumes:
   postgres_data:
