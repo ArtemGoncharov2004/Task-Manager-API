@@ -1,4 +1,5 @@
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import ConflictError, UnauthorizedError
 from app.core.security import create_access_token, hash_password, verify_password
@@ -6,25 +7,27 @@ from app.models.user import User
 from app.schemas.user import UserCreate
 
 
-def register_user(db: Session, data: UserCreate) -> User:
-    existing = db.query(User).filter(User.email == data.email).first()
+async def register_user(db: AsyncSession, data: UserCreate) -> User:
+    result = await db.execute(select(User).where(User.email == data.email))
+    existing = result.scalar_one_or_none()
     if existing is not None:
         raise ConflictError(f"User with email '{data.email}' already exists")
 
     user = User(email=data.email, hashed_password=hash_password(data.password))
     db.add(user)
-    db.commit()
-    db.refresh(user)
+    await db.commit()
+    await db.refresh(user)
     return user
 
 
-def authenticate_user(db: Session, email: str, password: str) -> User:
-    user = db.query(User).filter(User.email == email).first()
+async def authenticate_user(db: AsyncSession, email: str, password: str) -> User:
+    result = await db.execute(select(User).where(User.email == email))
+    user = result.scalar_one_or_none()
     if user is None or not verify_password(password, user.hashed_password):
         raise UnauthorizedError("Invalid email or password")
     return user
 
 
-def login(db: Session, email: str, password: str) -> str:
-    user = authenticate_user(db, email, password)
+async def login(db: AsyncSession, email: str, password: str) -> str:
+    user = await authenticate_user(db, email, password)
     return create_access_token({"sub": str(user.id)})
