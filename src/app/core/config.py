@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=BASE_DIR / ".env")
 
     database_url: str
+    test_database_url: str | None = None
     secret_key: str
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
