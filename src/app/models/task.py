@@ -29,7 +29,7 @@ class Task(Base):
     )
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id"))
 
-    project: Mapped["Project"] = relationship(back_populates="tasks")
+    project: Mapped["Project"] = relationship(back_populates="tasks", lazy="selectin")
     tags: Mapped[list["Tag"]] = relationship(
         secondary=task_tags, back_populates="tasks"
     )
