@@ -1,8 +1,13 @@
+from typing import TYPE_CHECKING
+
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.models.task_tags import task_tags
+
+if TYPE_CHECKING:
+    from app.models.task import Task
 
 
 class Tag(Base):
