@@ -7,7 +7,7 @@ from app.core.config import settings
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
-from app.models import *  # noqa: F401,F403 — регистрирует все модели в Base.metadata
+from app.models import *
 from app.schemas.user import UserCreate
 from app.services.auth_service import register_user
 

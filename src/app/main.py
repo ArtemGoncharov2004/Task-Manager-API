@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
+from app.api.auth import router as auth_router
 from app.api.projects import router as projects_router
 from app.api.tags import router as tags_router
 from app.api.tasks import router as tasks_router
@@ -10,7 +11,6 @@ from app.core.exceptions import (
     NotFoundError,
     UnauthorizedError,
 )
-from app.api.auth import router as auth_router
 
 app = FastAPI(title="Task Manager API")
 

@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
+from app.api.deps import get_current_user
 from app.db.session import get_db
+from app.models.user import User
 from app.schemas.pagination import PaginatedResponse
 from app.schemas.project import ProjectCreate, ProjectRead, ProjectUpdate
 from app.services import project_service
-from app.api.deps import get_current_user
-from app.models.user import User
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
